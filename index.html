@@ -98,44 +98,44 @@
     th { background: var(--card); }
     .hidden { display: none; }
 
-    /* ---- Coco mascot ---- */
+    /* ---- full-screen Coco ---- */
     #coco {
       position: fixed;
-      bottom: -120px;
-      right: 20px;
-      width: 100px;
-      height: 100px;
-      object-fit: cover;
-      border-radius: 50%;
-      box-shadow: 0 4px 12px rgba(0,0,0,.25);
-      transition: bottom .6s ease;
+      inset: 0;                /* top 0 right 0 bottom 0 left 0 */
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;        /* fill entire viewport */
       z-index: 999;
+      opacity: 0;
+      transform: scale(1.05);
+      transition: opacity .6s ease, transform .6s ease;
     }
     #coco.show {
-      bottom: 20px;
+      opacity: 1;
+      transform: scale(1);
     }
     #coco.wag {
-      animation: wag .5s ease-in-out 5;
+      animation: wag .5s ease-in-out 6;
     }
     @keyframes wag {
-      0%, 100% { transform: rotate(-6deg); }
-      50% { transform: rotate(6deg); }
+      0%, 100% { transform: scale(1) rotate(-4deg); }
+      50% { transform: scale(1) rotate(4deg); }
     }
     #coco-bubble {
       position: fixed;
-      bottom: 130px;
-      right: 20px;
-      background: #fff;
+      top: 5vh;
+      left: 50%;
+      translate: -50% 0;
+      background: #fff9;
       color: var(--text);
-      padding: .6rem 1rem;
+      padding: 1rem 1.5rem;
       border-radius: 12px;
-      font-size: .9rem;
-      box-shadow: 0 2px 8px rgba(0,0,0,.15);
+      font-size: 1.4rem;
+      font-weight: 600;
+      z-index: 1000;
       opacity: 0;
       transform: scale(.8);
-      transition: opacity .3s, transform .3s;
-      pointer-events: none;
-      z-index: 998;
+      transition: opacity .4s, transform .4s;
     }
     #coco-bubble.show {
       opacity: 1;
@@ -233,7 +233,7 @@
     </p>
   </div>
 
-  <!-- Coco mascot -->
+  <!-- full-screen Coco -->
   <img id="coco"
        src="https://i.imgur.com/yqxC5K4.jpeg"
        alt="Coco says thanks!">
@@ -274,12 +274,12 @@
       if (!choice || !est) return;
 
       // POST to Google Form (field IDs we extracted earlier)
-      const formURL = 'https://docs.google.com/forms/d/e/1FAIpQLSc2vLaJ3sEFFK4PO9rNZIteNR8zBXN6Zqa1QE4uclxydFyP2g/formResponse';
+      const formURL = 'https://docs.google.com/forms/d/e/1s3gJw-ONH603ixG4xQmLdkThpNzwOfGo4KCVIkfM4Vo/formResponse';
       const params = new URLSearchParams({
         'entry.134831861': new Date().toISOString(),
-        'entry.1063888550': anchor,
-        'entry.212816804': choice,
-        'entry.1166971948': est
+        'entry.853466103': anchor,
+        'entry.403015616': choice,
+        'entry.448770408': est
       });
 
       fetch(formURL, {
@@ -290,7 +290,7 @@
       .then(() => {
         alert('Thank you! Your answer has been recorded.');
 
-        // Coco appears
+        // full-screen Coco appears
         document.getElementById('coco').classList.add('show');
         document.getElementById('coco-bubble').classList.add('show');
         document.getElementById('coco').classList.add('wag');
