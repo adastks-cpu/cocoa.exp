@@ -95,53 +95,53 @@
       border: 1px solid var(--border);
       text-align: center;
     }
-    th { background: #f7f5da; }
+    th { background: var(--card); }
     .hidden { display: none; }
-  </style> /* ---- Coco mascot ---- */
-#coco {
-  position: fixed;
-  bottom: -120px;              /* hidden below screen */
-  right: 20px;
-  width: 100px;
-  height: 100px;
-  object-fit: cover;
-  border-radius: 50%;
-  box-shadow: 0 4px 12px rgba(0,0,0,.25);
-  transition: bottom .6s ease;
-  z-index: 999;
-}
-#coco.show {
-  bottom: 20px;                /* slide up */
-}
-#coco.wag {
-  animation: wag .5s ease-in-out 5;
-}
-@keyframes wag {
-  0%, 100% { transform: rotate(-6deg); }
-  50% { transform: rotate(6deg); }
-}
 
-/* ---- Coco’s speech bubble ---- */
-#coco-bubble {
-  position: fixed;
-  bottom: 130px;
-  right: 20px;
-  background: #fff;
-  color: #261d69;
-  padding: .6rem 1rem;
-  border-radius: 12px;
-  font-size: .9rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,.15);
-  opacity: 0;
-  transform: scale(.8);
-  transition: opacity .3s, transform .3s;
-  pointer-events: none;
-  z-index: 998;
-}
-#coco-bubble.show {
-  opacity: 1;
-  transform: scale(1);
-} 
+    /* ---- Coco mascot ---- */
+    #coco {
+      position: fixed;
+      bottom: -120px;
+      right: 20px;
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 50%;
+      box-shadow: 0 4px 12px rgba(0,0,0,.25);
+      transition: bottom .6s ease;
+      z-index: 999;
+    }
+    #coco.show {
+      bottom: 20px;
+    }
+    #coco.wag {
+      animation: wag .5s ease-in-out 5;
+    }
+    @keyframes wag {
+      0%, 100% { transform: rotate(-6deg); }
+      50% { transform: rotate(6deg); }
+    }
+    #coco-bubble {
+      position: fixed;
+      bottom: 130px;
+      right: 20px;
+      background: #fff;
+      color: var(--text);
+      padding: .6rem 1rem;
+      border-radius: 12px;
+      font-size: .9rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,.15);
+      opacity: 0;
+      transform: scale(.8);
+      transition: opacity .3s, transform .3s;
+      pointer-events: none;
+      z-index: 998;
+    }
+    #coco-bubble.show {
+      opacity: 1;
+      transform: scale(1);
+    }
+  </style>
 </head>
 <body>
   <!-- CONSENT CARD -->
@@ -233,6 +233,12 @@
     </p>
   </div>
 
+  <!-- Coco mascot -->
+  <img id="coco"
+       src="https://i.imgur.com/yqxC5K4.jpeg"
+       alt="Coco says thanks!">
+  <div id="coco-bubble">Thanks for helping science!<br>Love, Coco 🐾</div>
+
   <script>
     let anchor = 0;          // 10 000 or 1 000 000
     let choice = '';         // under | over
@@ -274,16 +280,19 @@
       .then(r => r.text())
       .then(msg => {
         if (msg !== 'ok') throw new Error(msg);
-        alert('Thank you! Your answer has been recorded.');// Coco appears
-document.getElementById('coco').classList.add('show');
-document.getElementById('coco-bubble').classList.add('show');
-document.getElementById('coco').classList.add('wag');
+        alert('Thank you! Your answer has been recorded.');
 
-// Coco hides after 4 seconds
-setTimeout(() => {
-  document.getElementById('coco').classList.remove('show', 'wag');
-  document.getElementById('coco-bubble').classList.remove('show');
-}, 4000);
+        // Coco appears
+        document.getElementById('coco').classList.add('show');
+        document.getElementById('coco-bubble').classList.add('show');
+        document.getElementById('coco').classList.add('wag');
+
+        // Coco hides after 4 seconds
+        setTimeout(() => {
+          document.getElementById('coco').classList.remove('show', 'wag');
+          document.getElementById('coco-bubble').classList.remove('show');
+        }, 4000);
+
         // reset form
         choice = '';
         document.getElementById('underBtn').classList.remove('active');
@@ -315,11 +324,6 @@ setTimeout(() => {
         .forEach(c => document.getElementById(c).classList.add('hidden'));
       document.getElementById(id).classList.remove('hidden');
     }
-  </script> 
-  <!-- Coco mascot -->
-<img id="coco"
-     src="https://drive.google.com/file/d/1UGx3gUKFwosNiVK8m1eOuAn2k1b1l2Ez/view?usp=sharing"
-     alt="Coco says thanks!">
-<div id="coco-bubble">Thanks for helping science!<br>Love, Coco 🐾</div>
+  </script>
 </body>
 </html>
