@@ -272,7 +272,7 @@
     function submit() {
       const est = parseInt(document.getElementById('estimate').value, 10);
       if (!choice || !est) return;
-fetch('https://script.google.com/macros/s/AKfycbXXXXXXXXXXXXXXXX/exec', {
+fetch('https://docs.google.com/spreadsheets/d/1YwpdxS643RoK9AV5Vfzyy9z8kVcXeHjP2plFhpQFox0/edit?gid=0#gid=0', {
         method: 'POST',
         body: new URLSearchParams({ anchor, choice, estimate: est })
       })
