@@ -74,6 +74,8 @@
       cursor: pointer;
       color: var(--text);
       transition: all 0.2s ease;
+      position: relative;
+      z-index: 1;
     }
     
     button:hover:not(:disabled) {
@@ -179,9 +181,31 @@
       margin: 1rem 0 0.5rem 0;
       font-weight: 500;
     }
+
+    /* Debug styles */
+    .debug-info {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: rgba(0,0,0,0.8);
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+      font-family: monospace;
+      font-size: 12px;
+      z-index: 10000;
+      max-width: 300px;
+    }
   </style>
 </head>
 <body>
+  <!-- Debug Info Panel -->
+  <div id="debug-panel" class="debug-info" style="display: none;">
+    <div><strong>Debug Info:</strong></div>
+    <div id="debug-content"></div>
+    <button onclick="document.getElementById('debug-panel').style.display='none'">Close</button>
+  </div>
+
   <!-- CONSENT CARD -->
   <div id="consent-card" class="card">
     <h1>Research Consent Form</h1>
@@ -234,8 +258,8 @@
     <p style="margin-top: 1.5rem"><strong>By clicking "YES" you confirm that you have read and understood the information above and freely consent to participate.</strong></p>
 
     <div class="btn-group">
-      <button class="active" onclick="start(true)">YES, I give consent</button>
-      <button onclick="start(false)">NO, I don't give consent</button>
+      <button type="button" id="consent-yes">YES, I give consent</button>
+      <button type="button" id="consent-no">NO, I don't give consent</button>
     </div>
   </div>
 
@@ -246,15 +270,15 @@
     <p style="font-weight: 600; color: var(--primary)" id="anchor-line"></p>
 
     <div class="btn-group">
-      <button id="underBtn" onclick="pick('under')">Under</button>
-      <button id="overBtn" onclick="pick('over')">Over</button>
+      <button type="button" id="underBtn">Under</button>
+      <button type="button" id="overBtn">Over</button>
     </div>
 
     <label for="estimate" class="label">Give your estimation of the real starting price (USD):</label>
     <input id="estimate" type="text" inputmode="numeric" placeholder="Digits only" disabled>
 
     <div class="btn-group">
-      <button id="submitBtn" disabled onclick="submit()">Submit</button>
+      <button type="button" id="submitBtn" disabled>Submit</button>
     </div>
   </div>
 
@@ -288,109 +312,343 @@
   <div id="coco-bubble">Thanks for helping science!<br>Love, Coco 🐾</div>
 
   <script>
-    /* ---------- 50 : 50 split with perfect balance ---------- */
-    let anchor = 0;          // 10 000 or 1 000 000
-    let choice = '';         // under | over
-    let rows = [];           // Store submitted data
-
-    // global counters (persist in sessionStorage)
-    const COUNTER_KEY = 'cocoCounter';
-    function getNextAnchor() {
-      let c = JSON.parse(sessionStorage.getItem(COUNTER_KEY) || '{"total":0,"A":0,"B":0}');
-      c.total++;
-      // assign to whichever is currently behind
-      if (c.A <= c.B) { anchor = 10000;  c.A++; }
-      else            { anchor = 1000000; c.B++; }
-      sessionStorage.setItem(COUNTER_KEY, JSON.stringify(c));
-      return anchor;
+    // Debug function
+    function debug(message) {
+      console.log('[DIAMOND STUDY DEBUG]:', message);
+      const debugPanel = document.getElementById('debug-panel');
+      const debugContent = document.getElementById('debug-content');
+      if (debugPanel && debugContent) {
+        debugContent.innerHTML += message + '<br>';
+        debugPanel.style.display = 'block';
+      }
     }
 
-    /* ---------- consent ---------- */
+    // Global variables
+    let anchor = 0;
+    let choice = '';
+    let rows = [];
+
+    // Debug: Show when script loads
+    debug('Script loaded successfully');
+
+    // Wait for DOM to be fully loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      debug('DOM fully loaded');
+      
+      // Initialize event listeners
+      initializeEventListeners();
+    });
+
+    function initializeEventListeners() {
+      debug('Initializing event listeners...');
+      
+      // Consent buttons
+      const consentYes = document.getElementById('consent-yes');
+      const consentNo = document.getElementById('consent-no');
+      
+      if (consentYes) {
+        consentYes.addEventListener('click', function() {
+          debug('Consent YES clicked');
+          start(true);
+        });
+      } else {
+        debug('ERROR: consent-yes button not found');
+      }
+      
+      if (consentNo) {
+        consentNo.addEventListener('click', function() {
+          debug('Consent NO clicked');
+          start(false);
+        });
+      } else {
+        debug('ERROR: consent-no button not found');
+      }
+      
+      // Choice buttons
+      const underBtn = document.getElementById('underBtn');
+      const overBtn = document.getElementById('overBtn');
+      
+      if (underBtn) {
+        underBtn.addEventListener('click', function() {
+          debug('Under button clicked');
+          pick('under');
+        });
+      } else {
+        debug('ERROR: underBtn not found');
+      }
+      
+      if (overBtn) {
+        overBtn.addEventListener('click', function() {
+          debug('Over button clicked');
+          pick('over');
+        });
+      } else {
+        debug('ERROR: overBtn not found');
+      }
+      
+      // Submit button
+      const submitBtn = document.getElementById('submitBtn');
+      if (submitBtn) {
+        submitBtn.addEventListener('click', function() {
+          debug('Submit button clicked');
+          submit();
+        });
+      } else {
+        debug('ERROR: submitBtn not found');
+      }
+      
+      // Estimate input
+      const estimate = document.getElementById('estimate');
+      if (estimate) {
+        estimate.addEventListener('input', function(e) {
+          debug('Estimate input changed: ' + e.target.value);
+          // Remove non-digits
+          const originalValue = e.target.value;
+          e.target.value = e.target.value.replace(/\D/g, '');
+          if (originalValue !== e.target.value) {
+            debug('Removed non-digits from input');
+          }
+          
+          // Enable/disable submit button
+          const submitBtn = document.getElementById('submitBtn');
+          if (submitBtn) {
+            const shouldEnable = choice && e.target.value;
+            submitBtn.disabled = !shouldEnable;
+            debug('Submit button disabled: ' + !shouldEnable);
+          }
+        });
+      } else {
+        debug('ERROR: estimate input not found');
+      }
+      
+      debug('Event listeners initialized');
+    }
+
+    // Storage functions with error handling
+    function safeSessionStorageGet(key) {
+      try {
+        return sessionStorage.getItem(key);
+      } catch (e) {
+        debug('sessionStorage get error: ' + e.message);
+        return null;
+      }
+    }
+
+    function safeSessionStorageSet(key, value) {
+      try {
+        sessionStorage.setItem(key, value);
+        return true;
+      } catch (e) {
+        debug('sessionStorage set error: ' + e.message);
+        return false;
+      }
+    }
+
+    // Counter functions
+    const COUNTER_KEY = 'cocoCounter';
+    
+    function getNextAnchor() {
+      try {
+        let c = JSON.parse(safeSessionStorageGet(COUNTER_KEY) || '{"total":0,"A":0,"B":0}');
+        c.total++;
+        
+        if (c.A <= c.B) { 
+          anchor = 10000;  
+          c.A++; 
+        } else {            
+          anchor = 1000000; 
+          c.B++; 
+        }
+        
+        safeSessionStorageSet(COUNTER_KEY, JSON.stringify(c));
+        debug('Anchor selected: ' + anchor + ' (A: ' + c.A + ', B: ' + c.B + ')');
+        return anchor;
+      } catch (e) {
+        debug('Error in getNextAnchor: ' + e.message);
+        anchor = 10000; // fallback
+        return anchor;
+      }
+    }
+
+    // Consent function
     function start(consent) {
+      debug('start() called with consent: ' + consent);
+      
       if (!consent) {
         show('decline-card');
         return;
       }
-      anchor = getNextAnchor();
-      document.getElementById('anchor-line').textContent =
-        anchor.toLocaleString() + ' USD – more or less?';
-      show('question-card');
-    }
-
-    /* ---------- under / over ---------- */
-    function pick(val) {
-      choice = val;
-      document.getElementById('underBtn').classList.toggle('active', val === 'under');
-      document.getElementById('overBtn').classList.toggle('active', val === 'over');
-      document.getElementById('estimate').disabled = false;
       
-      // Enable submit if estimate is already filled
-      const estimate = document.getElementById('estimate').value;
-      document.getElementById('submitBtn').disabled = !choice || !estimate;
+      try {
+        anchor = getNextAnchor();
+        const anchorLine = document.getElementById('anchor-line');
+        if (anchorLine) {
+          anchorLine.textContent = anchor.toLocaleString() + ' USD – more or less?';
+          debug('Anchor line updated: ' + anchorLine.textContent);
+        } else {
+          debug('ERROR: anchor-line element not found');
+        }
+        
+        show('question-card');
+      } catch (e) {
+        debug('Error in start(): ' + e.message);
+      }
     }
 
-    // digits only
-    document.getElementById('estimate').addEventListener('input', e => {
-      e.target.value = e.target.value.replace(/\D/g, '');
-      document.getElementById('submitBtn').disabled = !choice || !e.target.value;
-    });
+    // Choice function
+    function pick(val) {
+      debug('pick() called with value: ' + val);
+      
+      choice = val;
+      
+      const underBtn = document.getElementById('underBtn');
+      const overBtn = document.getElementById('overBtn');
+      
+      if (underBtn && overBtn) {
+        underBtn.classList.toggle('active', val === 'under');
+        overBtn.classList.toggle('active', val === 'over');
+        debug('Choice buttons updated');
+      }
+      
+      const estimate = document.getElementById('estimate');
+      if (estimate) {
+        estimate.disabled = false;
+        debug('Estimate input enabled');
+      }
+      
+      // Check if we should enable submit button
+      const submitBtn = document.getElementById('submitBtn');
+      if (submitBtn && choice && estimate.value) {
+        submitBtn.disabled = false;
+        debug('Submit button enabled');
+      }
+    }
 
-    /* ---------- submit ---------- */
+    // Submit function
     function submit() {
-      const est = parseInt(document.getElementById('estimate').value, 10);
-      if (!choice || !est) return;
+      debug('submit() function called');
+      
+      const estimate = document.getElementById('estimate');
+      if (!estimate) {
+        debug('ERROR: estimate input not found');
+        return;
+      }
+      
+      const est = parseInt(estimate.value, 10);
+      debug('Parsed estimate: ' + est);
+      
+      if (!choice || !est) {
+        debug('Validation failed - choice: ' + choice + ', estimate: ' + est);
+        return;
+      }
 
-      // Store data locally for table display
+      // Store data locally
       rows.push({
         anchor: anchor,
         choice: choice,
         estimate: est
       });
+      
+      debug('Data stored locally, rows: ' + rows.length);
 
-      // POST to Google Form (field IDs updated)
-      const formURL = 'https://docs.google.com/forms/d/e/1s3gJw-ONH603ixG4xQmLdkThpNzwOfGo4KCVIkfM4Vo/formResponse';
-      const params = new URLSearchParams({
-        'entry.430162608': new Date().toISOString(),  // time
-        'entry.493712886': anchor,                     // anchor
-        'entry.583518581': choice,                     // choice
-        'entry.1271062354': est                        // estimate
-      });
-
-      fetch(formURL, {
-        method: 'POST',
-        body: params,
-        mode: 'no-cors'
-      })
-      .then(() => {
+      // Use traditional form submission instead of fetch to avoid CORS
+      try {
+        const formURL = 'https://docs.google.com/forms/d/e/1s3gJw-ONH603ixG4xQmLdkThpNzwOfGo4KCVIkfM4Vo/formResponse';
+        
+        // Create a hidden form and submit it
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = formURL;
+        form.target = '_blank'; // Open in new tab to avoid navigation issues
+        
+        // Add form fields
+        const fields = {
+          'entry.430162608': new Date().toISOString(),
+          'entry.493712886': anchor,
+          'entry.583518581': choice,
+          'entry.1271062354': est
+        };
+        
+        for (const [key, value] of Object.entries(fields)) {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = key;
+          input.value = value;
+          form.appendChild(input);
+        }
+        
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+        
+        debug('Form submitted successfully');
+        
+        // Show success message
         alert('Thank you! Your answer has been recorded.');
-
-        // full-screen Coco appears
-        document.getElementById('coco').classList.add('show');
-        document.getElementById('coco-bubble').classList.add('show');
-        document.getElementById('coco').classList.add('wag');
-
-        // Coco hides after 4 seconds
-        setTimeout(() => {
-          document.getElementById('coco').classList.remove('show', 'wag');
-          document.getElementById('coco-bubble').classList.remove('show');
-        }, 4000);
-
+        
+        // Show Coco animation
+        showCocoAnimation();
+        
         // Show data table
         renderTable();
         
-        // reset form
-        choice = '';
-        document.getElementById('underBtn').classList.remove('active');
-        document.getElementById('overBtn').classList.remove('active');
-        document.getElementById('estimate').value = '';
-        document.getElementById('submitBtn').disabled = true;
-        document.getElementById('estimate').disabled = true;
-      })
-      .catch(() => alert('Network error – please try again.'));
+        // Reset form
+        resetForm();
+        
+      } catch (e) {
+        debug('Error in form submission: ' + e.message);
+        alert('Network error – please try again.');
+      }
+    }
+
+    function showCocoAnimation() {
+      debug('Showing Coco animation');
+      
+      const coco = document.getElementById('coco');
+      const bubble = document.getElementById('coco-bubble');
+      
+      if (coco && bubble) {
+        coco.classList.add('show', 'wag');
+        bubble.classList.add('show');
+        
+        setTimeout(() => {
+          coco.classList.remove('show', 'wag');
+          bubble.classList.remove('show');
+          debug('Coco animation ended');
+        }, 4000);
+      }
+    }
+
+    function resetForm() {
+      debug('Resetting form');
+      
+      choice = '';
+      
+      const underBtn = document.getElementById('underBtn');
+      const overBtn = document.getElementById('overBtn');
+      const estimate = document.getElementById('estimate');
+      const submitBtn = document.getElementById('submitBtn');
+      
+      if (underBtn) underBtn.classList.remove('active');
+      if (overBtn) overBtn.classList.remove('active');
+      if (estimate) {
+        estimate.value = '';
+        estimate.disabled = true;
+      }
+      if (submitBtn) submitBtn.disabled = true;
+      
+      debug('Form reset complete');
     }
 
     function renderTable() {
+      debug('Rendering table with ' + rows.length + ' rows');
+      
       const tbody = document.getElementById('data-body');
+      if (!tbody) {
+        debug('ERROR: data-body not found');
+        return;
+      }
+      
       tbody.innerHTML = '';
       rows.forEach((r, i) => {
         const tr = document.createElement('tr');
@@ -401,13 +659,35 @@
           <td>${r.estimate.toLocaleString()}</td>`;
         tbody.appendChild(tr);
       });
+      
       show('data-card');
+      debug('Table rendered');
     }
 
-    function show(id) {
-      ['consent-card','question-card','decline-card','data-card']
-        .forEach(c => document.getElementById(c).classList.add('hidden'));
-      document.getElementById(id).classList.remove('hidden');
+    function show(cardId) {
+      debug('Showing card: ' + cardId);
+      
+      const cards = ['consent-card','question-card','decline-card','data-card'];
+      cards.forEach(c => {
+        const card = document.getElementById(c);
+        if (card) {
+          card.classList.add('hidden');
+        }
+      });
+      
+      const targetCard = document.getElementById(cardId);
+      if (targetCard) {
+        targetCard.classList.remove('hidden');
+        debug('Card ' + cardId + ' is now visible');
+      } else {
+        debug('ERROR: Target card ' + cardId + ' not found');
+      }
+    }
+
+    // Debug: Enable debug mode by adding ?debug=true to URL
+    if (window.location.search.includes('debug=true')) {
+      document.getElementById('debug-panel').style.display = 'block';
+      debug('Debug mode enabled');
     }
   </script>
 </body>
