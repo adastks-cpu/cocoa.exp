@@ -272,13 +272,22 @@
     function submit() {
       const est = parseInt(document.getElementById('estimate').value, 10);
       if (!choice || !est) return;
-fetch('https://docs.google.com/spreadsheets/d/1YwpdxS643RoK9AV5Vfzyy9z8kVcXeHjP2plFhpQFox0/edit?gid=0#gid=0', {
+
+      // POST to Google Form (field IDs we extracted earlier)
+      const formURL = 'https://docs.google.com/forms/d/e/1FAIpQLSc2vLaJ3sEFFK4PO9rNZIteNR8zBXN6Zqa1QE4uclxydFyP2g/formResponse';
+      const params = new URLSearchParams({
+        'entry.134831861': new Date().toISOString(),
+        'entry.1063888550': anchor,
+        'entry.212816804': choice,
+        'entry.1166971948': est
+      });
+
+      fetch(formURL, {
         method: 'POST',
-        body: new URLSearchParams({ anchor, choice, estimate: est })
+        body: params,
+        mode: 'no-cors'
       })
-      .then(r => r.text())
-      .then(msg => {
-        if (msg !== 'ok') throw new Error(msg);
+      .then(() => {
         alert('Thank you! Your answer has been recorded.');
 
         // Coco appears
