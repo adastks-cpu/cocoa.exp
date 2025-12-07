@@ -23,8 +23,6 @@
       color: var(--text);
       display: flex;
       justify-content: center;
-      align-items: center;
-      min-height: 100vh;
       padding: 2rem 1rem;
     }
     .card {
@@ -34,7 +32,6 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 2rem;
-      box-sizing: border-box;
     }
     h1, h2, h3 { margin-top: 0; color: var(--icon-title); }
 
@@ -42,7 +39,6 @@
       display: flex;
       gap: 1rem;
       margin-bottom: 1rem;
-      align-items: flex-start;
     }
     .icon-row svg {
       width: 20px;
@@ -66,11 +62,6 @@
       font-size: 1rem;
       cursor: pointer;
       color: var(--text);
-      transition: all 0.2s ease;
-    }
-    button:hover:not(:disabled) {
-      background: var(--primary);
-      border-color: var(--primary);
     }
     button.active {
       background: var(--primary);
@@ -91,7 +82,6 @@
       border-radius: 6px;
       background: #fff;
       color: var(--text);
-      box-sizing: border-box;
     }
 
     table {
@@ -111,10 +101,10 @@
     /* ---- full-screen Coco ---- */
     #coco {
       position: fixed;
-      inset: 0;
+      inset: 0;                /* top 0 right 0 bottom 0 left 0 */
       width: 100vw;
       height: 100vh;
-      object-fit: cover;
+      object-fit: cover;        /* fill entire viewport */
       z-index: 999;
       opacity: 0;
       transform: scale(1.05);
@@ -135,7 +125,7 @@
       position: fixed;
       top: 5vh;
       left: 50%;
-      transform: translateX(-50%);
+      translate: -50% 0;
       background: #fff9;
       color: var(--text);
       padding: 1rem 1.5rem;
@@ -144,12 +134,12 @@
       font-weight: 600;
       z-index: 1000;
       opacity: 0;
-      transform: translateX(-50%) scale(.8);
+      transform: scale(.8);
       transition: opacity .4s, transform .4s;
     }
     #coco-bubble.show {
       opacity: 1;
-      transform: translateX(-50%) scale(1);
+      transform: scale(1);
     }
   </style>
 </head>
@@ -194,8 +184,8 @@
     <p style="margin-top: 1.5rem"><strong>By clicking “YES” you confirm that you have read and understood the information above and freely consent to participate.</strong></p>
 
     <div class="btn-group">
-      <button id="consent-yes">YES, I give consent</button>
-      <button id="consent-no">NO, I don't give consent</button>
+      <button class="active" onclick="start(true)">YES, I give consent</button>
+      <button onclick="start(false)">NO, I don't give consent</button>
     </div>
   </div>
 
@@ -206,15 +196,15 @@
     <p style="font-weight: 600; color: var(--primary)" id="anchor-line"></p>
 
     <div class="btn-group">
-      <button id="underBtn">Under</button>
-      <button id="overBtn">Over</button>
+      <button id="underBtn" onclick="pick('under')">Under</button>
+      <button id="overBtn" onclick="pick('over')">Over</button>
     </div>
 
     <label for="estimate">Give your estimation of the real starting price (USD):</label>
     <input id="estimate" type="text" inputmode="numeric" placeholder="Digits only" disabled>
 
     <div class="btn-group">
-      <button id="submitBtn" disabled>Submit</button>
+      <button id="submitBtn" disabled onclick="submit()">Submit</button>
     </div>
   </div>
 
@@ -253,7 +243,6 @@
     /* ---------- 50 : 50 split with perfect balance ---------- */
     let anchor = 0;          // 10 000 or 1 000 000
     let choice = '';         // under | over
-    const rows = [];         // in-memory storage
 
     // global counters (persist in sessionStorage)
     const COUNTER_KEY = 'cocoCounter';
@@ -301,10 +290,10 @@
       // POST to Google Form (field IDs we extracted earlier)
       const formURL = 'https://docs.google.com/forms/d/e/1s3gJw-ONH603ixG4xQmLdkThpNzwOfGo4KCVIkfM4Vo/formResponse';
       const params = new URLSearchParams({
-        'entry.430162608': new Date().toISOString(),
-        'entry.493712886': anchor,
-        'entry.583518581': choice,
-        'entry.1271062354': est
+        'entry.134831861': new Date().toISOString(),
+        'entry.853466103': anchor,
+        'entry.403015616': choice,
+        'entry.448770408': est
       });
 
       fetch(formURL, {
@@ -357,15 +346,6 @@
         .forEach(c => document.getElementById(c).classList.add('hidden'));
       document.getElementById(id).classList.remove('hidden');
     }
-
-    // -----  missing listeners  -----
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('consent-yes').onclick   = () => start(true);
-      document.getElementById('consent-no').onclick    = () => start(false);
-      document.getElementById('underBtn').onclick      = () => pick('under');
-      document.getElementById('overBtn').onclick       = () => pick('over');
-      document.getElementById('submitBtn').onclick     = submit;
-    });
   </script>
 </body>
 </html>
