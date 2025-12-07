@@ -1,42 +1,24 @@
-import { useState } from "react";
-import ConsentForm from "@/components/ConsentForm";
-import Questionnaire from "@/components/Questionnaire";
-import ThankYou from "@/components/ThankYou";
-import { assignQuestionnaire } from "@/lib/questionnaireAssignment";
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Research Questionnaire</title>
+    <meta name="description" content="Participate in our research study by completing this confidential questionnaire." />
+    <meta name="author" content="Research Team" />
 
-type Stage = "consent" | "questionnaire" | "complete";
+    <meta property="og:title" content="Research Questionnaire" />
+    <meta property="og:description" content="Participate in our research study by completing this confidential questionnaire." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
 
-const Index = () => {
-  const [stage, setStage] = useState<Stage>("consent");
-  const [assignedQuestionnaire, setAssignedQuestionnaire] = useState<1 | 2 | null>(null);
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@Research" />
+    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+  </head>
 
-  const handleConsent = () => {
-    // Assign questionnaire when user consents (balanced 50/50 split)
-    const assigned = assignQuestionnaire();
-    setAssignedQuestionnaire(assigned);
-    setStage("questionnaire");
-  };
-
-  const handleQuestionnaireComplete = (responses: { anchor: number; choice: string; estimate: number }) => {
-    console.log("Questionnaire completed:", {
-      questionnaireType: assignedQuestionnaire,
-      ...responses,
-    });
-    setStage("complete");
-  };
-
-  return (
-    <>
-      {stage === "consent" && <ConsentForm onConsent={handleConsent} />}
-      {stage === "questionnaire" && assignedQuestionnaire && (
-        <Questionnaire
-          questionnaireType={assignedQuestionnaire}
-          onComplete={handleQuestionnaireComplete}
-        />
-      )}
-      {stage === "complete" && <ThankYou />}
-    </>
-  );
-};
-
-export default Index;
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
