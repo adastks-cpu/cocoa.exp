@@ -1,22 +1,42 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Button Test</title>
-  <style>
-    body { font-family: system-ui; padding: 2rem; text-align: center; }
-    button { padding: 1rem 2rem; margin: 0.5rem; cursor: pointer; }
-  </style>
-</head>
-<body>
-  <button id="yesBtn">YES</button>
-  <button id="noBtn">NO</button>
+import { useState } from "react";
+import ConsentForm from "@/components/ConsentForm";
+import Questionnaire from "@/components/Questionnaire";
+import ThankYou from "@/components/ThankYou";
+import { assignQuestionnaire } from "@/lib/questionnaireAssignment";
 
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('yesBtn').onclick = () => alert('YES clicked');
-      document.getElementById('noBtn').onclick  = () => alert('NO clicked');
+type Stage = "consent" | "questionnaire" | "complete";
+
+const Index = () => {
+  const [stage, setStage] = useState<Stage>("consent");
+  const [assignedQuestionnaire, setAssignedQuestionnaire] = useState<1 | 2 | null>(null);
+
+  const handleConsent = () => {
+    // Assign questionnaire when user consents (balanced 50/50 split)
+    const assigned = assignQuestionnaire();
+    setAssignedQuestionnaire(assigned);
+    setStage("questionnaire");
+  };
+
+  const handleQuestionnaireComplete = (responses: { anchor: number; choice: string; estimate: number }) => {
+    console.log("Questionnaire completed:", {
+      questionnaireType: assignedQuestionnaire,
+      ...responses,
     });
-  </script>
-</body>
-</html>
+    setStage("complete");
+  };
+
+  return (
+    <>
+      {stage === "consent" && <ConsentForm onConsent={handleConsent} />}
+      {stage === "questionnaire" && assignedQuestionnaire && (
+        <Questionnaire
+          questionnaireType={assignedQuestionnaire}
+          onComplete={handleQuestionnaireComplete}
+        />
+      )}
+      {stage === "complete" && <ThankYou />}
+    </>
+  );
+};
+
+export default Index;
