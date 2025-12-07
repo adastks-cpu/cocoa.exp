@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Button Test</title>
+  <style>
+    body { font-family: system-ui; padding: 2rem; text-align: center; }
+    button { padding: 1rem 2rem; margin: 0.5rem; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <button id="yesBtn">YES</button>
+  <button id="noBtn">NO</button>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('yesBtn').onclick = () => alert('YES clicked');
+      document.getElementById('noBtn').onclick  = () => alert('NO clicked');
+    });
+  </script>
+</body>
+</html>
